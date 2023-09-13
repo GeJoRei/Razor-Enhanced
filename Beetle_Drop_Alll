@@ -1,0 +1,163 @@
+# Auto organize in Beetle Bags by GeJoR
+# Utilize simple mount macro by MatsaMilla
+# Utilize T-Map ID & Pull by MatsaMilla
+
+self = Mobiles.FindBySerial(Player.Serial)
+heavy = Player.MaxWeight - 10
+
+BeetleCont = 0x44EF9A8C
+
+beetleBag = True
+dragTime = 300
+tesoura = Items.FindByID(0x0F9F,-1,Player.Backpack.Serial,2)
+cutCloth = Items.FindByID(0x1766,-1,Player.Backpack.Serial,2)
+scribesPen = Items.FindByID(0x0FBF,-1,Player.Backpack.Serial,2)
+
+gold = 0x0EED
+FRAGS = [0x0F21, 0x1BDD]
+clothing = [0x1766,0x1515,0x153D,0x1516,0x1F7B]
+weapons = [0xf62,0x1403,0xe87,0x1405,0x1401,0xf52,0x13b0,0xdf0,0x1439,0x1407,0xe89,0x143d,0x13b4,0xe81,0x13f8,
+0xf5c,0x143b,0x13b9,0xf61,0x1441,0x13b6,0xec4,0x13f6,0xf5e,0x13ff,0xec3,0xf43,0xf45,0xf4d,0xf4b,0x143e,
+0x13fb,0x1443,0xf47,0xf49,0xe85,0xe86,0x13fd,0xf50,0x13b2]
+gems = [0xf16,0xf15,0xf19,0xf25,0xf21,0xf10,0xf26,0xf2d,0xf13]
+reagents = [0xf7a,0xf7b,0xf86,0xf84,0xf85,0xf88,0xf8d,0xf8c]
+resources = [0x1BD1, 0x1BDD,0x26B4]
+scrolls = [0x1F4C] #Recall
+
+potions = [0x0F0E] #Potes vazios
+#gold = Items.FindByID(0x0EED,-1,Player.Backpack.Serial,2)
+
+if Player.Name == "GeJoR":
+    misc = [0x0EB2,0x0F3F,0x1BFB,0x1BD4,0x0F39]#Não precisa de Instrumentos musicais, flechas
+    
+    
+elif Player.Name == "GeJoRei":
+    misc = [0x0F21, 0x1BDD]
+
+#*********** SETUP SECTION*********************************************
+
+if Misc.CheckSharedValue('mount'+ str(Player.Serial)):
+    mountSerial = Misc.ReadSharedValue('mount'+ str(Player.Serial))
+    mount = Mobiles.FindBySerial(mountSerial)
+    #Beetlecontainer = 
+else:
+    mountSerial = None
+
+def checkDistance():
+    reopenChest = False
+    while mountSerial.DistanceTo(self) > int(0):
+        Misc.Pause(1000)
+        reopenChest = True
+        if not Timer.Check('Distance'):
+            Player.HeadMessage(msgColor, 'Too Far Away')
+            Timer.Create('Distance', 2500)
+    if reopenChest == True:
+        Items.UseItem(mountSerial)
+        Misc.Pause(dragTime)
+        reopenChest = False
+    
+def ItensToBeetle():
+    #print(mount.Contains)
+    #moves gold to beetle
+    for s in Player.Backpack.Contains:
+        if s.ItemID == gold:
+            Items.Move(s, mountSerial, -1)
+            Misc.Pause(dragTime)
+        if s.ItemID in resources:
+            Items.Move(s, ResBag, -1)
+            Misc.Pause(dragTime)
+        if s.ItemID in weapons:
+            Items.Move(s, WeapBag, -1)
+            Misc.Pause(dragTime)
+        if s.ItemID in reagents:
+            Items.Move(s, ReagsBag, -1)
+            Misc.Pause(dragTime)
+        if s.ItemID == 0x0F21 and s.Hue == 0x0489:
+            Player.ChatEmote(1,'[e woohoo')
+            Misc.Pause(200)
+            Player.ChatSay(66, 'FRAG, GET OUT OF HERE!')
+            Items.Move(s, gemBag, 0)
+            Misc.Pause(dragTime)
+        if s.ItemID in potions:
+            Items.Move(s, PotBag, -1)
+            Misc.Pause(dragTime)
+        if s.ItemID in misc:
+            Items.Move(s, MiscBag, -1)
+            Misc.Pause(dragTime)
+        if s.ItemID in scrolls:
+            Items.Move(s, ScrollBag, -1)
+            Misc.Pause(dragTime)
+        if s.ItemID in clothing:
+            Items.UseItem(tesoura)
+            Target.WaitForTarget(1000, False)
+            Target.TargetExecute(s)
+            Misc.Pause(dragTime)
+            Items.UseItem(tesoura)
+            Target.WaitForTarget(1000, False)
+            Target.TargetExecute(cutCloth)
+            Misc.Pause(dragTime)
+        if s.ItemID == 0x0EF3:
+            Items.UseItem(scribesPen)
+            Gumps.WaitForGump(949095101, 1000)
+            Gumps.SendAction(949095101, 22)
+            Gumps.WaitForGump(949095101, 1000)
+            Gumps.SendAction(949095101, 51)
+            Misc.Pause(dragTime)
+
+if Player.Mount:
+    Mobiles.UseMobile(Player.Serial)
+    Misc.Pause(dragTime)
+    Misc.WaitForContext(0x002EC8BD, 1000)
+    Misc.Pause(dragTime)
+    Misc.ContextReply(0x002EC8BD, 10)
+    Misc.Pause(dragTime)
+    
+    def GetBag ( sharedValue, promptString ):
+        if Misc.CheckSharedValue( sharedValue ):
+            bag = Misc.ReadSharedValue( sharedValue )
+            if not Items.FindBySerial( bag ):
+                Player.HeadMessage(66,promptString)
+                bag = Target.PromptTarget( promptString )
+                Misc.SetSharedValue( sharedValue, bag )
+        else:
+            Player.HeadMessage(66,promptString)
+            bag = Target.PromptTarget( promptString )
+            Misc.SetSharedValue( sharedValue, bag )
+        return bag
+    
+    goldBag = GetBag( 'goldBag', 'Select Bag for GOLD' )
+    WeapBag = GetBag( 'WeapBag', 'Select Bag for Weapons' )
+    gemBag = GetBag( 'gemBag', 'Select Bag for Gems' )
+    ReagsBag = GetBag( 'ReagsBag', 'Select Bag for Reagents' )
+    ResBag = GetBag( 'ResBag', 'Select Bag for Resources' )
+    PotBag = GetBag( 'PotBag', 'Select Bag for Potions' )
+    MiscBag = GetBag( 'MiscBag', 'Select Bag for Misc' )
+    ScrollBag = GetBag( 'ScrollBag', 'Select Bag for Scrolls' )
+    #trashCan = GetBag( 'trashCan', 'Select corpse to dump on')
+    
+    #Items.Move(penas, mountSerial, 0)
+    Misc.Pause(dragTime)
+    ItensToBeetle()
+else:
+    if mountSerial != None:
+        mount = Mobiles.FindBySerial(mountSerial)
+        while Player.DistanceTo(mount) > 1:
+            if Timer.Check('MountTimer') == False:
+                Player.ChatSay(66, mount.Name + ' Come')
+                Timer.Create('MountTimer', 500)
+            Misc.Pause(50)
+        Mobiles.UseMobile(mount)
+    else:
+        Player.HeadMessage(66,"Target Mount")
+        mountSerial = Target.PromptTarget("Target Mount",33)
+        mount = Mobiles.FindBySerial( mountSerial )
+        if mount:
+            Misc.SetSharedValue('mount'+ str(Player.Serial),mountSerial)
+            while Player.DistanceTo(mount) > 1:
+                if Timer.Check('MountTimer') == False:
+                    Player.ChatSay(66, mount.Name + ' Come')
+                    Timer.Create('MountTimer', 500)
+                Misc.Pause(50)
+            Mobiles.UseMobile(mount)
+        else:
+            Player.HeadMessage(33, 'Not Valid')
